@@ -1,101 +1,268 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import CrosswordGrid from "../components/crossword";
+import { Button } from "@/components/ui/button";
+import {
+  Download,
+  Eye,
+  EyeOff,
+  PaintBucket,
+  PlusCircle,
+  Trash2,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+const Home = () => {
+  const [questions, setQuestions] = useState<string[]>([""]);
+  const [answers, setAnswers] = useState<string[]>([""]);
+  const [isHorizontal, setIsHorizontal] = useState<boolean[]>([true]);
+  const [showAnswers, setShowAnswers] = useState(false);
+  const [error, setError] = useState<boolean>(false);
+
+  const handleQuestionChange = (index: number, value: string) => {
+    setQuestions((prev) => {
+      const updatedQuestions = [...prev];
+      updatedQuestions[index] = value;
+      return updatedQuestions;
+    });
+  };
+
+  const handleAnswerChange = (index: number, value: string) => {
+    setAnswers((prev) => {
+      const updatedAnswers = [...prev];
+      updatedAnswers[index] = value;
+      return updatedAnswers;
+    });
+  };
+
+  const handleOrientationChange = (index: number, checked: boolean) => {
+    setIsHorizontal((prev) => {
+      const updatedOrientation = [...prev];
+      updatedOrientation[index] = checked;
+      return updatedOrientation;
+    });
+  };
+
+  const addQuestionAnswerPair = () => {
+    setQuestions((prev) => [...prev, ""]);
+    setAnswers((prev) => [...prev, ""]);
+    setIsHorizontal((prev) =>
+      !!isHorizontal[0] ? [...prev, false] : [...prev, true]
+    );
+  };
+
+  const deleteQuestionAnswerPair = (index: number) => {
+    setQuestions((prev) => {
+      const updatedQuestions = [...prev];
+      updatedQuestions.splice(index, 1);
+      return updatedQuestions;
+    });
+
+    setAnswers((prev) => {
+      const updatedAnswers = [...prev];
+      updatedAnswers.splice(index, 1);
+      return updatedAnswers;
+    });
+
+    setIsHorizontal((prev) => {
+      const updatedOrientation = [...prev];
+      updatedOrientation.splice(index, 1);
+      return updatedOrientation;
+    });
+  };
+
+  useEffect(() => {
+    const checkAnswers = () => {
+      setError(false);
+      const nonEmptyAnswers = answers.filter((answer) => answer.trim() !== "");
+      if (nonEmptyAnswers.length < 2) {
+        setError(false);
+        return;
+      }
+
+      for (let i = 0; i < nonEmptyAnswers.length; i++) {
+        const answerChars = new Set(nonEmptyAnswers[i].toLowerCase());
+        let hasMatchingChar = false;
+
+        for (let j = 0; j < nonEmptyAnswers.length; j++) {
+          if (i !== j) {
+            const otherChars = new Set(nonEmptyAnswers[j].toLowerCase());
+
+            if ([...answerChars].some((char) => otherChars.has(char))) {
+              hasMatchingChar = true;
+              break;
+            }
+          }
+        }
+
+        if (!hasMatchingChar) {
+          setError(true);
+          return;
+        }
+      }
+    };
+
+    checkAnswers();
+  }, [answers]);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Kreuzworträtsel erstellen</h1>
+      <div className="grid lg:grid-cols-[1fr,2fr] gap-6">
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold mb-6">Fragen/Antworten</h2>
+          <ScrollArea className="h-[calc(100vh-100px)] border rounded-md p-4">
+            <Button
+              onClick={addQuestionAnswerPair}
+              className="sticky top-0 z-10 w-full bg-lime-600 hover:bg-lime-900"
+            >
+              <PlusCircle className="mr-2 h-2 w-2" /> Frage/Antwort erstellen
+            </Button>
+            <div className="space-y-4  flex flex-col-reverse">
+              {questions.map((question, index) => (
+                <div
+                  key={index}
+                  className="space-y-2 p-4 bg-gray-50 rounded-lg relative"
+                >
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      type="text"
+                      value={question}
+                      onChange={(e) =>
+                        handleQuestionChange(index, e.target.value)
+                      }
+                      className="border p-1 text-black"
+                      placeholder={`${index + 1}. Frage`}
+                    />
+                    <Input
+                      type="text"
+                      value={answers[index]}
+                      onChange={(e) =>
+                        handleAnswerChange(index, e.target.value)
+                      }
+                      className={`p-1 text-black ${
+                        error ? "border border-red-500" : "border"
+                      }`}
+                      placeholder={`${index + 1}. Antwort`}
+                    />
+                    <div className="flex items-center">
+                      <RadioGroup
+                        onValueChange={(value) =>
+                          handleOrientationChange(index, value === "horizontal")
+                        }
+                        defaultValue={
+                          isHorizontal[index] === true
+                            ? "horizontal"
+                            : "vertical"
+                        }
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem
+                            value="horizontal"
+                            id={`horizontal-${index}`}
+                          />
+                          <Label
+                            htmlFor={`horizontal-${index}`}
+                            className="ml-2"
+                          >
+                            Horizontal
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem
+                            value="vertical"
+                            id={`vertical-${index}`}
+                          />
+                          <Label htmlFor={`vertical-${index}`} className="ml-2">
+                            Vertical
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="ml-auto border border-gray-400"
+                        onClick={() => deleteQuestionAnswerPair(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="space-y-4">
+          <div className="flex justify-between">
+            <h2 className="text-xl font-semibold">Rätsel</h2>
+            <Button
+              onClick={() => setShowAnswers(!showAnswers)}
+              className="w-1/3 bg-lime-600 hover:bg-lime-900"
+            >
+              {showAnswers ? (
+                <>
+                  <EyeOff className="mr-2 h-4 w-4" /> Text ausblenden
+                </>
+              ) : (
+                <>
+                  <Eye className="mr-2 h-4 w-4" /> Text anzeigen
+                </>
+              )}
+            </Button>
+            <Button
+              // onClick={downloadCrossword}
+              className="w-1/3 bg-lime-600 hover:bg-lime-900"
+            >
+              <Download className="mr-2 h-4 w-4" /> Download
+            </Button>
+          </div>
+          <div className="bg-white border border-gray-300 rounded-lg shadow-sm p-4">
+            <div
+              className="bg-white border border-gray-200 rounded aspect-[1/1.4142] w-full flex flex-col justify-center"
+              style={{
+                maxHeight: "7014px", // A4 height in pixels at 600 DPI
+                maxWidth: "4962px", // A4 width in pixels at 600 DPI
+              }}
+            >
+              <CrosswordGrid
+                answers={answers}
+                isHorizontal={isHorizontal}
+                showAnswers={showAnswers}
+              />
+              {questions && questions.length > 1 ? (
+                <div className="w-full">
+                  {questions.map((q, index) => (
+                    <div className="grid grid-cols-2 px-6" key={index}>
+                      <p>
+                        {index + 1}. {q}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              {answers && answers.length > 1 ? (
+                <div className="flex gap-2 w-full rotate-180 text-[8px] pl-4">
+                  <p>Lösungen:</p>
+                  {answers.map((q, index) => (
+                    <div key={index}>
+                      <p>
+                        {index + 1}. {q}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Home;

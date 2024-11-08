@@ -76,6 +76,37 @@ const Home = () => {
   };
 
   useEffect(() => {
+    const style = document.createElement("style");
+    style.innerHTML = `
+            @media print {
+                body * {
+                    visibility: hidden;
+                }
+                #crossword-content, #crossword-content * {
+                    visibility: visible;
+                    background: transparent !important; /* Ensure transparency */
+                }
+                #crossword-content {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    background: transparent !important; /* Transparent background for main container */
+                }
+            }
+        `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  const downloadCrossword = () => {
+    window.print();
+  };
+
+  useEffect(() => {
     const checkAnswers = () => {
       setError(false);
       const nonEmptyAnswers = answers.filter((answer) => answer.trim() !== "");
@@ -115,7 +146,7 @@ const Home = () => {
       <div className="grid lg:grid-cols-[1fr,2fr] gap-6">
         <div className="space-y-4">
           <h2 className="text-xl font-semibold mb-6">Fragen/Antworten</h2>
-          <ScrollArea className="h-[calc(100vh-100px)] border rounded-md p-4">
+          <ScrollArea className="h-[calc(100vh-240px)] border rounded-md p-4">
             <Button
               onClick={addQuestionAnswerPair}
               className="sticky top-0 z-10 w-full bg-lime-600 hover:bg-lime-900"
@@ -215,19 +246,16 @@ const Home = () => {
               )}
             </Button>
             <Button
-              // onClick={downloadCrossword}
+              onClick={downloadCrossword}
               className="w-1/3 bg-lime-600 hover:bg-lime-900"
             >
               <Download className="mr-2 h-4 w-4" /> Download
             </Button>
           </div>
-          <div className="bg-white border border-gray-300 rounded-lg shadow-sm p-4">
+          <div className="bg-white border rounded-lg shadow-sm p-4">
             <div
-              className="bg-white border border-gray-200 rounded aspect-[1/1.4142] w-full flex flex-col justify-center"
-              style={{
-                maxHeight: "7014px", // A4 height in pixels at 600 DPI
-                maxWidth: "4962px", // A4 width in pixels at 600 DPI
-              }}
+              className="bg-white w-full flex flex-col justify-center"
+              id="crossword-content"
             >
               <CrosswordGrid
                 answers={answers}
@@ -235,7 +263,7 @@ const Home = () => {
                 showAnswers={showAnswers}
               />
               {questions && questions.length > 1 ? (
-                <div className="w-full">
+                <div className="text-center">
                   {questions.map((q, index) => (
                     <div className="grid grid-cols-2 px-6" key={index}>
                       <p>
@@ -246,10 +274,10 @@ const Home = () => {
                 </div>
               ) : null}
               {answers && answers.length > 1 ? (
-                <div className="flex gap-2 w-full rotate-180 text-[8px] pl-4">
+                <div className="flex flex-wrap gap-2 justify-center rotate-180 text-[8px] my-auto w-[500px] mx-auto">
                   <p>Lösungen:</p>
                   {answers.map((q, index) => (
-                    <div key={index}>
+                    <div key={index} className="flex flex-col">
                       <p>
                         {index + 1}. {q}
                       </p>

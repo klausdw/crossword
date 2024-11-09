@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ColorPicker } from "@/components/ui/color-picker";
 
 const Home = () => {
   const [questions, setQuestions] = useState<string[]>([""]);
@@ -22,6 +23,7 @@ const Home = () => {
   const [isHorizontal, setIsHorizontal] = useState<boolean[]>([true]);
   const [showAnswers, setShowAnswers] = useState(false);
   const [error, setError] = useState<boolean>(false);
+  const [bgColor, setBgColor] = useState<string>("#edf2f7");
 
   const handleQuestionChange = (index: number, value: string) => {
     setQuestions((prev) => {
@@ -140,6 +142,10 @@ const Home = () => {
     checkAnswers();
   }, [answers]);
 
+  const handleColorChange = (color: string) => {
+    setBgColor(color);
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Kreuzworträtsel erstellen</h1>
@@ -245,6 +251,7 @@ const Home = () => {
                 </>
               )}
             </Button>
+            <ColorPicker value={bgColor} onChange={handleColorChange} />
             <Button
               onClick={downloadCrossword}
               className="w-1/3 bg-lime-600 hover:bg-lime-900"
@@ -261,6 +268,7 @@ const Home = () => {
                 answers={answers}
                 isHorizontal={isHorizontal}
                 showAnswers={showAnswers}
+                backgroundColor={bgColor}
               />
               {questions && questions.length > 1 ? (
                 <div className="text-center">

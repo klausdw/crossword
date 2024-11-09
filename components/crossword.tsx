@@ -7,10 +7,12 @@ const CrosswordGrid = ({
   answers,
   isHorizontal,
   showAnswers,
+  backgroundColor,
 }: {
   answers: string[];
   isHorizontal: boolean[];
   showAnswers: boolean;
+  backgroundColor: string;
 }) => {
   const [grid, setGrid] = useState<string[][]>([]);
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
@@ -146,14 +148,18 @@ const CrosswordGrid = ({
                     "cursor-pointer hover:bg-gray-200": cell,
                     "text-transparent": selectedCells.has(cellKey),
                     "bg-white": !selectedCells.has(cellKey),
-                    "after:content-arrowRightIcon bg-gray-200 after:absolute after:top-0.5 after:-left-1 after:w-2.5 after:h-2.5":
+                    "after:content-arrowRightIcon after:absolute after:top-0.5 after:-left-1 after:w-2.5 after:h-2.5":
                       isFirstCell && isHorizontalCell,
-                    "after:content-arrowDownIcon bg-gray-200 after:absolute after:-top-2.5 after:w-2.5 after:h-2.5":
+                    "after:content-arrowDownIcon after:absolute after:-top-2.5 after:w-2.5 after:h-2.5":
                       isFirstCell && !isHorizontalCell,
                   }
                 )}
                 style={{
                   visibility: cell ? "visible" : "hidden",
+                  backgroundColor:
+                    isFirstCell || selectedCells.has(cellKey)
+                      ? backgroundColor
+                      : undefined,
                 }}
               >
                 {firstCell ? (

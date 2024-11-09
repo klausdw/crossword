@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import classNames from "classnames";
 
 const CrosswordGrid = ({
   answers,
@@ -12,6 +13,7 @@ const CrosswordGrid = ({
   showAnswers: boolean;
 }) => {
   const [grid, setGrid] = useState<string[][]>([]);
+  const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
   const gridSize = 28;
   const [firstCells, setFirstCells] = useState<
     { row: number; col: number; horizontal: boolean }[]
@@ -101,6 +103,17 @@ const CrosswordGrid = ({
     setFirstCells(newFirstCells);
   }, [answers, isHorizontal]);
 
+  const handleCellClick = (rowIndex: number, colIndex: number) => {
+    const cellKey = `${rowIndex}-${colIndex}`;
+    setSelectedCells((prevSelectedCells) => {
+      const newSelectedCells = new Set(prevSelectedCells);
+      newSelectedCells.has(cellKey)
+        ? newSelectedCells.delete(cellKey)
+        : newSelectedCells.add(cellKey);
+      return newSelectedCells;
+    });
+  };
+
   return (
     <div className="flex flex-col items-center">
       <div
@@ -109,6 +122,7 @@ const CrosswordGrid = ({
       >
         {grid.map((row, rowIndex) =>
           row.map((cell, colIndex) => {
+            const cellKey = `${rowIndex}-${colIndex}`;
             const firstCell = firstCells.find(
               (firstCell) =>
                 firstCell.row === rowIndex && firstCell.col === colIndex
@@ -118,22 +132,26 @@ const CrosswordGrid = ({
               firstCells.findIndex(
                 (cell) => cell.row === rowIndex && cell.col === colIndex
               ) + 1;
-
+            const isFirstCell = firstCells.some(
+              (firstCell) =>
+                firstCell.row === rowIndex && firstCell.col === colIndex
+            );
             return (
               <div
-                key={`${rowIndex}-${colIndex}`}
-                className={`w-8 h-8 border ${
-                  firstCells.some(
-                    (firstCell) =>
-                      firstCell.row === rowIndex && firstCell.col === colIndex
-                  )
-                    ? isHorizontalCell
-                      ? `after:content-arrowRightIcon bg-gray-200 after:absolute after:top-0.5 after:-left-1 after:w-2.5 after:h-2.5`
-                      : `after:content-arrowDownIcon bg-gray-200 after:absolute after:-top-2.5 after:w-2.5 after:h-2.5`
-                    : cell
-                    ? "bg-white"
-                    : ""
-                } flex justify-center items-center relative text-black`}
+                key={cellKey}
+                onClick={() => handleCellClick(rowIndex, colIndex)}
+                className={classNames(
+                  "w-8 h-8 border select-none flex justify-center items-center relative text-black",
+                  {
+                    "cursor-pointer hover:bg-gray-200": cell,
+                    "text-transparent": selectedCells.has(cellKey),
+                    "bg-white": !selectedCells.has(cellKey),
+                    "after:content-arrowRightIcon bg-gray-200 after:absolute after:top-0.5 after:-left-1 after:w-2.5 after:h-2.5":
+                      isFirstCell && isHorizontalCell,
+                    "after:content-arrowDownIcon bg-gray-200 after:absolute after:-top-2.5 after:w-2.5 after:h-2.5":
+                      isFirstCell && !isHorizontalCell,
+                  }
+                )}
                 style={{
                   visibility: cell ? "visible" : "hidden",
                 }}

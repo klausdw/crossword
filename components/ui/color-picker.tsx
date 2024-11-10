@@ -7,7 +7,6 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import { HexColorPicker } from "react-colorful";
 import { Input } from "@/components/ui/input";
 
 interface ColorPickerProps {
@@ -52,7 +51,16 @@ const ColorPicker = forwardRef<
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full">
-          <HexColorPicker color={parsedValue} onChange={onChange} />
+          <Input
+            type="color"
+            className="p-1 h-20 w-2/3 mx-auto block bg-white border border-gray-200 cursor-pointer rounded-lg disabled:opacity-50 disabled:pointer-events-none"
+            value={parsedValue}
+            onChange={(e) => {
+              onChange(e?.currentTarget?.value);
+            }}
+            ref={ref}
+            maxLength={7}
+          />
           <Input
             maxLength={7}
             onChange={(e) => {

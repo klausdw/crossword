@@ -41,13 +41,13 @@ const ColorPicker = forwardRef<
             }}
             size="icon"
             variant="outline"
-            className="w-1/4 bg-lime-600 text-white hover:text-white hover:bg-lime-900"
+            className="gap-1 p-2 w-full border-2 border-[#1a3a1a] font-serif hover:bg-[#e8f3e8] shadow"
           >
             <div
-              className="w-4 h-4 rounded-md border-2 border-white"
+              className="w-4 h-4 rounded-md border border-[#1a3a1a]"
               style={{ backgroundColor: parsedValue }}
             />
-            Kästchen hintergrund ändern
+            Kästchen Farbe
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full">
